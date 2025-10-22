@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const medecinSchema = new mongoose.Schema(
   {
-    Sex: {
+    sex: {
       type: String,
       required: true,
     },
@@ -39,4 +39,6 @@ medecinSchema.methods.generateAuthToken = function () {
   return token;
 };
 
-const medecin = mongoose.model("medecin", medecinSchema);
+const Medecin = mongoose.model("medecin", medecinSchema);
+
+module.exports = { Medecin };

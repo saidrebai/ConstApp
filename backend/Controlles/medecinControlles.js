@@ -2,17 +2,17 @@ const Joi = require("joi");
 const passwordComplexity = require("joi-password-complexity");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
-const { medecin } = require("../models/medecinModel");
-
+const { Medecin } = require("../models/medecinModel");
+const jwt = require("jsonwebtoken");
+const { vall } = require("../middleware/vall");
+// const checkDuplicateEmail = require("../utils/utils");
+// const randomString = require("../utils/utils");
 
 const validate = (data) => {
   const schema = Joi.object({
-    typeOfUser: Joi.string().required().label("type of user"),
-    name: Joi.string().required().label("name"),
-    country: Joi.string().required().label("country"),
-    town: Joi.string().required().label("town"),
-    address: Joi.string().required().label("address"),
-    zipcode: Joi.number().required().label("zipcode"),
+    sex: Joi.string().required().label("Sex"),
+    First_Name: Joi.string().required().label("First_name"),
+    Last_Name: Joi.string().required().label("Last_name"),
     phone: Joi.number().required().label("phone"),
     email: Joi.string().email().required().label("Email"),
     password: passwordComplexity().required().label("Password"),
@@ -27,7 +27,7 @@ module.exports = {
       if (error)
         return res.status(400).send({ message: error.details[0].message });
 
-      const medecin = await medecin.findOne({ email: req.body.email });
+      const medecin = await Medecin.findOne({ email: req.body.email });
       if (!medecin)
         return res.status(401).send({ message: "Invalid Email or Password" });
 
@@ -40,25 +40,26 @@ module.exports = {
 
       const token = medecin.generateAuthToken();
       const decoded = jwt.verify(token, process.env.JWTPRIVATEKEY);
-      //  const expiresIn = 60; // Expiration time in seconds
+  
       res.status(200).send({
         data: token,
         _id: decoded._id,
-        name: medecin.name,
-        // expiresIn: expiresIn,
+        First_Name: medecin.First_Name,
+
         message: "logged in successfully",
       });
     } catch (error) {
       res.status(500).send({ message: "Internal Server Error" });
     }
   },
+
   signup: async function (req, res) {
     try {
       const { error } = validate(req.body);
       if (error)
         return res.status(400).send({ message: error.details[0].message });
 
-      const user = await medecin.findOne({ email: req.body.email });
+      const user = await Medecin.findOne({ email: req.body.email });
       if (user)
         return res
           .status(409)
@@ -67,9 +68,10 @@ module.exports = {
       const salt = await bcrypt.genSalt(Number(process.env.SALT));
       const hashPassword = await bcrypt.hash(req.body.password, salt);
 
-      await new medecin({ ...req.body, password: hashPassword }).save();
+      await new Medecin({ ...req.body, password: hashPassword }).save();
       res.status(201).send({ message: "User created successfully" });
     } catch (error) {
+      console.log(error);
       res.status(500).send({ message: "Internal Server Error" });
     }
   },
