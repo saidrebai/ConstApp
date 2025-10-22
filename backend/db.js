@@ -13,6 +13,7 @@ module.exports = () => {
 		console.log("Could not connect database!");
 	}
 	try {
+		
 		// Attempt MongoDB operation
 	  } catch (error) {
 		if (error instanceof ServerSelectionError) {
